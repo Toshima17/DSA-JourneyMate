@@ -3,7 +3,7 @@
 DSA JourneyMate is a full-stack problem tracking dashboard built for practicing data structures and algorithms with with analytics dashboard, revision reminders, and streak tracking.
 
 ## Live Demo
-https://dsa-journey-mate.vercel.app 
+https://dsa-journey-mate-zgoo.vercel.app/
 
 ## Features
 
