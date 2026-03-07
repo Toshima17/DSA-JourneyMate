@@ -73,7 +73,7 @@
                 return;
             }
 
-            fetch("http://localhost:3000/add-problem", {
+            fetch("https://dsa-journeymate-api.onrender.com/add-problem", {
                 method: "POST",
                 headers: {
                     "Content-Type": "application/json"
@@ -97,7 +97,7 @@
             .catch(err => console.error(err));
         }
         function loadProblems(difficulty = "") {
-            let url = "http://localhost:3000/problems";
+            let url = "https://dsa-journeymate-api.onrender.com/problems";
             if (difficulty) {
                 url += "?difficulty=" + difficulty;
             }
@@ -148,7 +148,7 @@
             return;
             }
 
-            fetch(`http://localhost:3000/delete-problem/${id}`, {
+            fetch(`https://dsa-journeymate-api.onrender.com/delete-problem/${id}`, {
             method: "DELETE"
             })
             .then(res => res.json())
@@ -166,7 +166,7 @@
         }
 
         function updateProblem(id, title, difficulty) {
-            fetch(`http://localhost:3000/update-problem/${id}`, {
+            fetch(`https://dsa-journeymate-api.onrender.com/update-problem/${id}`, {
                 method: "PUT",
                 headers: {
                     "Content-Type": "application/json"
@@ -188,7 +188,7 @@
         }
         function updateStatus(id, status) {
 
-            fetch(`http://localhost:3000/update-status/${id}`, {
+            fetch(`https://dsa-journeymate-api.onrender.com/update-status/${id}`, {
             method: "PATCH",
             headers: {
             "Content-Type": "application/json"
@@ -209,7 +209,7 @@
 
         function updateAttempt(id) {
 
-            fetch(`http://localhost:3000/update-attempt/${id}`, {
+            fetch(`https://dsa-journeymate-api.onrender.com/update-attempt/${id}`, {
             method: "PATCH"
             })
             .then(res => res.json())
@@ -225,7 +225,7 @@
 
         function loadRevisionProblems(){
 
-            fetch("http://localhost:3000/revision-problems")
+            fetch("https://dsa-journeymate-api.onrender.com/revision-problems")
             .then(res => res.json())
             .then(data => {
 
@@ -248,7 +248,7 @@
 
         function loadStats(){
 
-            fetch("http://localhost:3000/stats")
+            fetch("https://dsa-journeymate-api.onrender.com/stats")
             .then(res => res.json())
             .then(data => {
 
@@ -278,7 +278,7 @@
         }
 
         function editProblem(id){
-            fetch(`http://localhost:3000/problems`)
+            fetch(`https://dsa-journeymate-api.onrender.com/problems`)
             .then(res => res.json())
             .then(data => {
             const problem = data.find(p => p._id === id);
@@ -294,7 +294,7 @@
         }
 
         function loadStreak(){
-            fetch("http://localhost:3000/streak")
+            fetch("https://dsa-journeymate-api.onrender.com/streak")
             .then(res => res.json())
             .then(data => {
 
@@ -306,7 +306,7 @@
 
         function loadProgressChart() {
 
-            fetch("http://localhost:3000/progress-data")
+            fetch("https://dsa-journeymate-api.onrender.com/progress-data")
             .then(res => res.json())
             .then(data => {
 
