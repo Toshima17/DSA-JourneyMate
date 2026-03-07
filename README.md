@@ -39,3 +39,14 @@ Vercel
 
 Backend:
 Render
+
+## ScreenShots
+
+### Dashboard
+![Dashboard](screenshots/DashboardAndGraph.png)
+
+### Add Problem
+![Add Problem](screenshots/add-problem.png)
+
+### Revision System
+![Revision](screenshots/revision.png)
