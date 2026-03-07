@@ -9,15 +9,15 @@ https://dsa-journey-mate-zgoo.vercel.app/
 
 # ✨ Features
 
-*✔ Add DSA problems with title, difficulty, and link
-✔ Track problem status (Not Started / Attempted / Solved)
-✔ Filter problems by difficulty
-✔ Search problems instantly
-✔ Interactive progress dashboard
-✔ Daily streak counter 🔥
-✔ DSA progress graph visualization
-✔ Revision reminder system
-✔ Clean and responsive UI
+- ✔ Add DSA problems with title, difficulty, and link
+- ✔ Track problem status (Not Started / Attempted / Solved)
+- ✔ Filter problems by difficulty
+- ✔ Search problems instantly
+- ✔ Interactive progress dashboard
+- ✔ Daily streak counter 🔥
+- ✔ DSA progress graph visualization
+- ✔ Revision reminder system
+- ✔ Clean and responsive UI
 
 
 # 🧠 How It Works
