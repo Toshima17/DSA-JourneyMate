@@ -49,7 +49,7 @@ const Problem = mongoose.model("Problem", problemSchema);
 
 //Routes
 app.get("/", (req, res) => {
-    res.send("PrepSATI AI Backend Running");
+    res.send("DSA JourneyMate Backend Running");
 });
 app.get("/hello", (req, res) => {
     res.send("Hello, i'm Toshima Rahangdale");
