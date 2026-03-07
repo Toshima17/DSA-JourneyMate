@@ -15,7 +15,17 @@ DSA JourneyMate is a full-stack problem tracking dashboard built for practicing 
 
 ## Tech Stack
 
-Frontend: HTML, CSS, JavaScript
-Backend: Node.js, Express.js
-Database: MongoDB (Mongoose)
-Charts: Chart.js
+Frontend:
+HTML
+CSS
+JavaScript
+
+Backend:
+Node.js
+Express.js
+
+Database:
+MongoDB (Mongoose)
+
+Charts:
+Chart.js
