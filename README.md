@@ -1,17 +1,20 @@
 # DSA JourneyMate
 
-DSA JourneyMate is a full-stack problem tracking dashboard built for practicing data structures and algorithms.
+DSA JourneyMate is a full-stack problem tracking dashboard built for practicing data structures and algorithms with with analytics dashboard, revision reminders, and streak tracking.
+
+## Live Demo
+https://dsa-journey-mate.vercel.app 
 
 ## Features
 
-• Add / edit / delete problems  
-• Difficulty filtering  
-• Search functionality  
-• Status tracking (Not Started / Attempted / Solved)  
-• Progress analytics dashboard  
-• Revision reminders  
-• Streak tracker  
-• Progress visualization with Chart.js  
+• Add DSA problems with difficulty & links
+• Track status (Not Started / Attempted / Solved)  
+• Filter problems by difficulty 
+• Search problems
+• Progress dashboard with statistics  
+• DSA progress graph
+• Revision reminder system
+• Daily streak tracking 
 
 ## Tech Stack
 
@@ -25,7 +28,14 @@ Node.js,
 Express.js
 
 Database:
-MongoDB (Mongoose)
+MongoDB Atlas
 
 Charts:
 Chart.js
+
+## Deployment
+Frontend:
+Vercel
+
+Backend:
+Render
