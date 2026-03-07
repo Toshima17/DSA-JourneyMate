@@ -1,0 +1,364 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Test Add Problem</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="container">
+        <div class="streak-box">
+        🔥 Streak: <span id="currentStreak">0</span> days
+        </div>
+
+        <h2>Add Problem</h2>
+        <input type="text" id="title" placeholder="Title">
+        <select id="difficulty">
+            <option value="">Select Difficulty</option>
+            <option value="Easy">Easy</option>
+            <option value="Medium">Medium</option>
+            <option value="Hard">Hard</option>
+        </select>
+        <input type="text" id="link" placeholder="Enter problem link">
+        <button onclick="addProblem()">Add Problem</button>
+
+        <h3>Filter Problems</h3>
+        <button class="filter-btn active" onclick="setFilter('')">All</button>
+        <button class="filter-btn" onclick="setFilter('Easy')">Easy</button>
+        <button class="filter-btn" onclick="setFilter('Medium')">Medium</button>
+        <button class="filter-btn" onclick="setFilter('Hard')">Hard</button>
+
+        <h3>Search Problem</h3>
+        <input type="text" id="searchInput" placeholder="Search problem title..." onkeyup="searchProblems()">
+
+        <h3>Problem List</h3>
+        <div id="problemList"></div>
+
+        <h3>Progress Dashboard</h3>
+        <div class="dashboard">
+            <div class="stat-card">
+                Total Problems
+            <div id="totalCount"></div>
+            </div>
+
+            <div class="stat-card">
+                Solved
+            <div id="solvedCount"></div>
+            </div>
+
+            <div class="stat-card">
+                Attempted
+            <div id="attemptedCount"></div>
+            </div>
+
+            <div class="stat-card">
+                Not Started
+            <div id="notStartedCount"></div>
+            </div>
+        </div>
+
+        <h3>DSA Progress Graph</h3>
+        <canvas id="progressChart" width="400" height="200"></canvas>
+
+        <h3>Revision Problems</h3>
+        <ul id="revisionList"></ul>
+
+    <script>
+        function addProblem() {
+            const title = document.getElementById("title").value;
+            const difficulty = document.getElementById("difficulty").value;
+            const link = document.getElementById("link").value;
+
+            if (!title.trim() || !difficulty.trim() || !link.trim()) {
+                alert("Please enter title, difficulty and problem link!");
+                return;
+            }
+
+            fetch("http://localhost:3000/add-problem", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify({ title, difficulty, link })
+            })
+            .then(res => res.json())
+            .then(data => {
+                if (data.error) {
+                    alert(data.error);
+                    return;
+                }
+                document.getElementById("title").value = "";
+                document.getElementById("difficulty").value = "";
+                document.getElementById("link").value = "";
+                
+                alert("Problem Added Successfully!");
+                loadProblems();
+                loadStats();
+            })
+            .catch(err => console.error(err));
+        }
+        function loadProblems(difficulty = "") {
+            let url = "http://localhost:3000/problems";
+            if (difficulty) {
+                url += "?difficulty=" + difficulty;
+            }
+            fetch(url)
+                .then(res => res.json())
+                .then(data => {
+                    const list = document.getElementById("problemList");
+                    list.innerHTML = "";
+
+                data.forEach(problem => {
+                    const card = document.createElement("div");
+                    card.classList.add("fade-in");
+                    card.className = "card";
+
+                    card.innerHTML = `
+                    <div class="problem-info">
+                    <strong>${problem.title}</strong><br>
+                    Difficulty: ${problem.difficulty} | Status: ${problem.status}
+                    </div>
+
+                    <div class="problem-actions">
+
+                    <button class="open-btn" onclick="window.open('${problem.link}','_blank')">Open</button>
+                    <button class="edit-btn" onclick="editProblem('${problem._id}')">✏️</button>
+                    <button class="delete-btn" onclick="deleteProblem('${problem._id}')">✖</button>
+
+                    <select class="status-select"
+                    onchange="updateStatus('${problem._id}', this.value)">
+
+                    <option ${problem.status==="Not Started"?"selected":""}>Not Started</option>
+                    <option ${problem.status==="Attempted"?"selected":""}>Attempted</option>
+                    <option ${problem.status==="Solved"?"selected":""}>Solved</option>
+
+                    </select>
+
+                    </div>
+                    `;
+
+                    list.appendChild(card);
+                });
+            });
+        }
+
+        function deleteProblem(id) {
+            const confirmDelete = confirm("Do you want to delete this problem?");
+
+            if(!confirmDelete){
+            return;
+            }
+
+            fetch(`http://localhost:3000/delete-problem/${id}`, {
+            method: "DELETE"
+            })
+            .then(res => res.json())
+            .then(data => {
+
+            alert("Problem deleted successfully!");
+
+            loadProblems();
+            loadStats();
+
+            })
+
+            .catch(err => console.error(err));
+
+        }
+
+        function updateProblem(id, title, difficulty) {
+            fetch(`http://localhost:3000/update-problem/${id}`, {
+                method: "PUT",
+                headers: {
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify({ title, difficulty })
+            })
+            .then(res => res.json())
+            .then(data => {
+                if (data.error) {
+                    alert(data.error);
+                    return;
+                }
+
+                alert("Updated Successfully");
+                loadProblems();
+                loadStats();
+            })
+            .catch(err => console.error(err));
+        }
+        function updateStatus(id, status) {
+
+            fetch(`http://localhost:3000/update-status/${id}`, {
+            method: "PATCH",
+            headers: {
+            "Content-Type": "application/json"
+            },
+            body: JSON.stringify({ status })
+            })
+            .then(res => res.json())
+            .then(data => {
+
+            alert("Status updated!");
+            loadProblems();
+            loadStats();
+
+            })
+            .catch(err => console.error(err));
+
+        }
+
+        function updateAttempt(id) {
+
+            fetch(`http://localhost:3000/update-attempt/${id}`, {
+            method: "PATCH"
+            })
+            .then(res => res.json())
+            .then(data => {
+
+            alert("Marked as attempted!");
+            loadProblems();
+
+            })
+            .catch(err => console.error(err));
+
+        }
+
+        function loadRevisionProblems(){
+
+            fetch("http://localhost:3000/revision-problems")
+            .then(res => res.json())
+            .then(data => {
+
+            const list = document.getElementById("revisionList");
+            list.innerHTML = "";
+
+            data.forEach(problem => {
+
+            const li = document.createElement("li");
+            li.innerHTML = `<b style="color:red">${problem.title}</b> - ${problem.difficulty} (Revision Due)`;
+
+            list.appendChild(li);
+
+            });
+
+            })
+            .catch(err => console.error(err));
+
+        }
+
+        function loadStats(){
+
+            fetch("http://localhost:3000/stats")
+            .then(res => res.json())
+            .then(data => {
+
+            document.getElementById("totalCount").textContent = data.total;
+            document.getElementById("solvedCount").textContent = data.solved;
+            document.getElementById("attemptedCount").textContent = data.attempted;
+            document.getElementById("notStartedCount").textContent = data.notStarted;
+
+            })
+            .catch(err => console.error(err));
+
+        }
+
+        function searchProblems(){
+            const input = document.getElementById("searchInput").value.toLowerCase();
+            const cards = document.querySelectorAll(".card");
+            cards.forEach(card => {
+            const text = card.textContent.toLowerCase();
+
+            if(text.includes(input)){
+            card.style.display = "flex";
+            }else{
+            card.style.display = "none";
+            }
+
+            });
+        }
+
+        function editProblem(id){
+            fetch(`http://localhost:3000/problems`)
+            .then(res => res.json())
+            .then(data => {
+            const problem = data.find(p => p._id === id);
+            const newTitle = prompt("Enter new title:", problem.title);
+            const newDifficulty = prompt("Enter new difficulty (Easy/Medium/Hard):", problem.difficulty);
+
+            if(newTitle && newDifficulty){
+            updateProblem(id, newTitle, newDifficulty);
+            }
+            l
+            });
+
+        }
+
+        function loadStreak(){
+            fetch("http://localhost:3000/streak")
+            .then(res => res.json())
+            .then(data => {
+
+            document.getElementById("currentStreak").textContent = data.streak ;
+            })
+            .catch(err => console.error(err));
+
+        }
+
+        function loadProgressChart() {
+
+            fetch("http://localhost:3000/progress-data")
+            .then(res => res.json())
+            .then(data => {
+
+                const labels = Object.keys(data);
+                const values = Object.values(data);
+                const ctx = document.getElementById("progressChart").getContext("2d");
+
+                new Chart(ctx, {
+                    type: "bar",
+                    data: {
+                        labels: labels,
+                        datasets: [{
+                            label: "Problems Solved",
+                            data: values,
+                            borderColor: "blue",
+                            backgroundColor: "lightblue",
+                            tension: 0.3
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        scales:{
+                            y:{
+                                beginAtZero: true,
+                                ticks:{
+                                    stepSize: 1
+                                }
+                            }
+                        }
+                    }
+                });
+
+            });
+        }
+
+        function setFilter(difficulty){
+            loadProblems(difficulty);
+            const buttons = document.querySelectorAll(".filter-btn");
+            buttons.forEach(btn=>{
+                btn.classList.remove("active");
+            });
+            event.target.classList.add("active");
+        }
+
+        loadProblems();
+        loadRevisionProblems();
+        loadStats();
+        loadStreak();
+        loadProgressChart();
+
+    </script>
+    </div>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</body>
+</html>
