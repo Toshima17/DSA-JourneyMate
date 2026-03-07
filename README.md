@@ -4,12 +4,12 @@ A **full-stack DSA progress tracker** that helps students organize, track, and r
 It provides a clean dashboard, revision reminders, streak tracking, and progress analytics.
 
 🌐 **Live Demo:**
-https://dsa-journey-mate.vercel.app
+https://dsa-journey-mate-zgoo.vercel.app/
 
 
 # ✨ Features
 
-✔ Add DSA problems with title, difficulty, and link
+*✔ Add DSA problems with title, difficulty, and link
 ✔ Track problem status (Not Started / Attempted / Solved)
 ✔ Filter problems by difficulty
 ✔ Search problems instantly
