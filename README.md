@@ -18,9 +18,9 @@ https://dsa-journey-mate.vercel.app/
    - Edit or delete problems anytime
 
 - ✔ Search & Filtering
-    - ✔ Search problems instantly
-    - ✔ Filter problems by difficulty
-    - ✔ Clean card-based UI for problem tracking
+    - Search problems instantly
+    - Filter problems by difficulty
+    - Clean card-based UI for problem tracking
 
 - ✔ Progress dashboard
     - Total problems count
