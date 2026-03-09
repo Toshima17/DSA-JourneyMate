@@ -21,7 +21,7 @@ https://dsa-journey-mate.vercel.app/
    - Revision intervals:
     Day 1 → Day 3 → Day 7 → Day 14 → Day 30
 - ✔ Revision Reminder
-    -Problems automatically appear in the Revision Problems section when their revision date arrives.
+   - Problems automatically appear in the Revision Problems section when their revision date arrives.
 
 
 # 🧠 How It Works
