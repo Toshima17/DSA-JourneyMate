@@ -9,19 +9,38 @@ https://dsa-journey-mate.vercel.app/
 
 # ✨ Features
 
-- ✔ Add DSA problems with title, difficulty, and link
-- ✔ Track problem status (Not Started / Attempted / Solved)
-- ✔ Filter problems by difficulty
-- ✔ Search problems instantly
-- ✔ Interactive progress dashboard
-- ✔ Daily streak counter 🔥
-- ✔ DSA progress graph visualization
-- ✔ Clean and responsive UI
+- ✔ Problem Management
+   - Add DSA problems with title, difficulty, and problem link
+   - Update problem status:
+     - Not Started
+     - Attempted
+     - Solved
+   - Edit or delete problems anytime
+
+- ✔ Search & Filtering
+    - ✔ Search problems instantly
+    - ✔ Filter problems by difficulty
+    - ✔ Clean card-based UI for problem tracking
+
+- ✔ Progress dashboard
+    - Total problems count
+    - Solved problems
+    - Attempted problems
+    - Not started problems
+    
+- ✔ Daily streak Tracker 
+    - Tracks how many consecutive days you solved problems
+
+- ✔ DSA progress Graph 
+    - Visual chard showing problems solved per day
+    - Helps track learning consistency
+
 - ✔ Spaced Repetition Revision System
-   - Revision intervals:
-     - Day 1 → Day 3 → Day 7 → Day 14 → Day 30
+    - Automatically schedules revisions after solving a problem 
+    - Revision intervals:
+      - Day 1 → Day 3 → Day 7 → Day 14 → Day 30
 - ✔ Revision Reminder
-   - Problems automatically appear in the Revision Problems section when their revision date arrives.
+   - Problems automatically appear in the **Revision Problems** section when their revision date arrives.
 
 
 # 🧠 How It Works
@@ -124,6 +143,7 @@ DSA-JourneyMate
 * Topic tagging (Arrays, Graphs, DP, etc.)
 * AI-based problem recommendations
 * Advanced analytics dashboard
+* Weekly progress report
 
 
 # 👩‍💻 Author
