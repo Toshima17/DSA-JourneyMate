@@ -19,7 +19,7 @@ https://dsa-journey-mate.vercel.app/
 - ✔ Clean and responsive UI
 - ✔ Spaced Repetition Revision System
    - Revision intervals:
-    Day 1 → Day 3 → Day 7 → Day 14 → Day 30
+     - Day 1 → Day 3 → Day 7 → Day 14 → Day 30
 - ✔ Revision Reminder
    - Problems automatically appear in the Revision Problems section when their revision date arrives.
 
