@@ -103,14 +103,14 @@
             }
             fetch(url)
                 .then(res => res.json())
-                .then(data => {
+            .then(data => {
+                    //PROBLEM LIST
                     const list = document.getElementById("problemList");
                     list.innerHTML = "";
 
                 data.forEach(problem => {
                     const card = document.createElement("div");
-                    card.classList.add("fade-in");
-                    card.className = "card";
+                    card.classList.add("card","fade-in");
 
                     card.innerHTML = `
                     <div class="problem-info">
@@ -229,21 +229,26 @@
             .then(res => res.json())
             .then(data => {
 
-            const list = document.getElementById("revisionList");
-            list.innerHTML = "";
+                const list = document.getElementById("revisionList");
+                list.innerHTML = "";
+                if(data.length === 0){
+                    list.innerHTML = "<li>No revisions today 🎉</li>";
+                    return;
+                }
 
-            data.forEach(problem => {
+                data.forEach(problem => {
 
-            const li = document.createElement("li");
-            li.innerHTML = `<b style="color:red">${problem.title}</b> - ${problem.difficulty} (Revision Due)`;
-
-            list.appendChild(li);
-
-            });
-
-            })
-            .catch(err => console.error(err));
-
+                    const li = document.createElement("li");
+                    li.innerHTML = `
+                    <strong style="color:red">${problem.title}</strong>
+                    (${problem.difficulty})
+                    <button onclick="window.open('${problem.link}','_blank')">
+                    Review
+                    </button>
+                    `;
+                    list.appendChild(li);
+                });
+            }).catch(err => console.error(err));
         }
 
         function loadStats(){
@@ -288,7 +293,7 @@
             if(newTitle && newDifficulty){
             updateProblem(id, newTitle, newDifficulty);
             }
-            l
+            
             });
 
         }

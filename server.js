@@ -9,7 +9,8 @@ app.use(cors());
 app.use(express.json());
 
 //mongoose connection
-mongoose.connect("mongodb+srv://toshimarahangdale_db_user:Toshima123@cluster0.ldlkz0b.mongodb.net/prepsati?retryWrites=true&w=majority")
+require("dotenv").config();
+mongoose.connect(process.env.MONGO_URI)
 .then(() => {
     console.log("MongoDB Connected Successfully");
 })
@@ -39,7 +40,11 @@ const problemSchema = new mongoose.Schema({
     },
     nextRevision: {
     type: Date
-}
+    },
+    revisionLevel: {
+    type: Number,
+    default: 0
+    }
 
 },
 { timestamps: true }
@@ -64,8 +69,18 @@ app.get("/test", (req, res) => {
 app.post("/add-problem", async (req, res) => {
     try {
         const { title, difficulty, link } = req.body;
+        const intervals = [1,3,7,14,30];
 
-        const newProblem = await Problem.create({title, difficulty, link});
+        const firstRevision = new Date();
+        firstRevision.setDate(firstRevision.getDate() + intervals[0]);
+
+        const newProblem = await Problem.create({
+        title,
+        difficulty,
+        link,
+        nextRevision: firstRevision,
+        revisionLevel: 0
+        });
 
         res.json(newProblem);
 
@@ -113,34 +128,42 @@ app.put("/update-problem/:id", async (req, res) => {
 });
 
 app.patch("/update-status/:id", async (req, res) => {
-
     try {
+        const { id } = req.params;
+        const { status } = req.body;
 
-    const { id } = req.params;
-    const { status } = req.body;
+        const problem = await Problem.findById(id);
 
-    const updateData = { status };
+        if (!problem) {
+            return res.status(404).json({ error: "Problem not found" });
+        }
 
-    if (status === "Solved") {
-    const nextRevision = new Date();
-    nextRevision.setDate(nextRevision.getDate()+ 3);
-    updateData.nextRevision = nextRevision;
-    }else {
-        updateData.nextRevision = null;
+        problem.status = status;
+
+        if (status === "Solved") {
+            const intervals = [1,3,7,14,30];
+            let level = problem.revisionLevel + 1;
+
+            if (level >= intervals.length) {
+                level = intervals.length - 1;
+            }
+
+            const nextRevision = new Date();
+            nextRevision.setDate(nextRevision.getDate() + intervals[level]);
+
+            problem.revisionLevel = level;
+            problem.nextRevision = nextRevision;
+
+        } else {
+            problem.nextRevision = null;
+
+        }
+        await problem.save();
+        res.json(problem);
+
+    }   catch (error) {
+        res.status(400).json({ error: error.message });
     }
-
-    const updatedProblem = await Problem.findByIdAndUpdate(
-    id,
-    updateData,
-    { new: true }
-    );
-
-    res.json(updatedProblem);
-
-    } catch (error) {
-    res.status(400).json({ error: error.message });
-    }
-
 });
 
 app.patch("/update-attempt/:id", async (req, res) => {
@@ -175,11 +198,8 @@ app.get("/revision-problems", async (req, res) => {
 app.get("/stats", async (req, res) => {
 
     const total = await Problem.countDocuments();
-
     const solved = await Problem.countDocuments({ status: "Solved" });
-
     const attempted = await Problem.countDocuments({ status: "Attempted" });
-
     const notStarted = await Problem.countDocuments({ status: "Not Started" });
 
     res.json({
@@ -227,19 +247,17 @@ app.get("/progress-data", async (req, res) => {
         const solvedProblems = await Problem.find({ status: "Solved" });
         const data = {};
         solvedProblems.forEach(problem => {
-            const date = new Date(problem.updatedAt)
+
+            const date = problem.updatedAt
             .toISOString()
             .split("T")[0];
 
-            if (!data[date]) {
-                data[date] = 0;
-            }
-            data[date]++;
+            data[date] = (data[date] || 0) + 1;
 
         });
-
         res.json(data);
-    }catch (error) {
+
+    } catch (error) {
         res.status(500).json({ error: error.message });
     }
 });
