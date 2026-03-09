@@ -1,7 +1,7 @@
 # 🚀 DSA JourneyMate
 
 A **full-stack DSA progress tracker** that helps students organize, track, and revise coding problems efficiently.
-It provides a clean dashboard, revision reminders, streak tracking, and progress analytics.
+It includes a spaced repetition revision system, clean dashboard, streak tracking, and progress analytics.
 
 🌐 **Live Demo:**
 https://dsa-journey-mate.vercel.app/
@@ -16,8 +16,12 @@ https://dsa-journey-mate.vercel.app/
 - ✔ Interactive progress dashboard
 - ✔ Daily streak counter 🔥
 - ✔ DSA progress graph visualization
-- ✔ Revision reminder system
 - ✔ Clean and responsive UI
+- ✔ Spaced Repetition Revision System
+    Revision intervals:
+    Day 1 → Day 3 → Day 7 → Day 14 → Day 30
+- ✔ Revision Reminder
+    Problems automatically appear in the Revision Problems section when their revision date arrives.
 
 
 # 🧠 How It Works
@@ -77,6 +81,12 @@ Install dependencies
 
 ```bash
 npm install
+```
+
+Create Environment File (.env file)
+
+```bash
+MONGO_URI=your_mongodb_connection_string
 ```
 
 Start the server
