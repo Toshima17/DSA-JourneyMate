@@ -117,30 +117,42 @@
                     card.classList.add("card","fade-in");
 
                     card.innerHTML = `
-                    <div class="problem-info">
-                    <strong>${problem.title}</strong><br>
-                    Difficulty: ${problem.difficulty} | Status: ${problem.status}<br>
-                    <p><b>Logic:</b> ${problem.logic ? problem.logic : "No logic added yet"}</p>
-                    </div>
+                        <div class="card-top" onclick="toggleLogic('${problem._id}')" style="cursor:pointer;">
+                            <div class="top-left">
+                                <strong>${problem.title}</strong>
+                                <div class="problem-meta">
+                                    Difficulty: 
+                                    <span class="difficulty ${problem.difficulty.toLowerCase()}">
+                                        ${problem.difficulty}
+                                    </span>
+                                    | Status: ${problem.status}
+                                </div>
 
-                    <div class="problem-actions">
+                                <div class="logic-hint">
+                                    👇 Click to view logic <span id="arrow-${problem._id}">▼</span>
+                                </div>
+                            </div>
 
-                    <button class="open-btn" onclick="window.open('${problem.link}','_blank')">Open</button>
-                    <button class="edit-btn" onclick="editProblem('${problem._id}')">✏️</button>
-                    <button class="delete-btn" onclick="deleteProblem('${problem._id}')">✖</button>
+                            <div class="problem-actions">
+                                <button class="open-btn" onclick="event.stopPropagation(); window.open('${problem.link}','_blank')">Open</button>
+                                <button class="edit-btn" onclick="event.stopPropagation(); editProblem('${problem._id}')">✏️</button>
+                                <button class="delete-btn" onclick="event.stopPropagation(); deleteProblem('${problem._id}')">✖</button>
 
-                    <select class="status-select"
-                    onchange="updateStatus('${problem._id}', this.value)">
+                                <select class="status-select"
+                                onchange="event.stopPropagation(); updateStatus('${problem._id}', this.value)">
+                                    <option ${problem.status==="Not Started"?"selected":""}>Not Started</option>
+                                    <option ${problem.status==="Attempted"?"selected":""}>Attempted</option>
+                                    <option ${problem.status==="Solved"?"selected":""}>Solved</option>
+                                </select>
+                            </div>
+                        </div>
 
-                    <option ${problem.status==="Not Started"?"selected":""}>Not Started</option>
-                    <option ${problem.status==="Attempted"?"selected":""}>Attempted</option>
-                    <option ${problem.status==="Solved"?"selected":""}>Solved</option>
-
-                    </select>
-
-                    </div>
+                        <div id="logic-${problem._id}" class="logic-box">
+                            ${problem.logic 
+                                ? `<b>Logic:</b> ${problem.logic}` 
+                                : `<span style="color:gray;">⚠️ No logic added (click edit)</span>`}
+                        </div>
                     `;
-
                     list.appendChild(card);
                 });
             });
@@ -360,6 +372,20 @@
                 btn.classList.remove("active");
             });
             event.target.classList.add("active");
+        }
+
+        function toggleLogic(id) {
+            console.log("clicked:", id); 
+            const box = document.getElementById(`logic-${id}`);
+            const arrow = document.getElementById(`arrow-${id}`); 
+
+            if (box.style.display === "none" || box.style.display === "") {
+                box.style.display = "block";
+                arrow.textContent = "▲";
+            } else {
+                box.style.display = "none";
+                arrow.textContent = "▼";
+            }
         }
 
         loadProblems();
