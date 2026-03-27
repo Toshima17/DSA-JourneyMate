@@ -38,14 +38,18 @@ const problemSchema = new mongoose.Schema({
         type: String,
         required: true
     },
+    logic: {
+    type: String,
+    default: ""
+    },
     nextRevision: {
     type: Date
     },
     revisionLevel: {
     type: Number,
     default: 0
-    }
-
+    },
+    
 },
 { timestamps: true }
 );
@@ -68,7 +72,7 @@ app.get("/test", (req, res) => {
 
 app.post("/add-problem", async (req, res) => {
     try {
-        const { title, difficulty, link } = req.body;
+        const { title, difficulty, link, logic } = req.body;
         const intervals = [1,3,7,14,30];
 
         const firstRevision = new Date();
@@ -78,6 +82,7 @@ app.post("/add-problem", async (req, res) => {
         title,
         difficulty,
         link,
+        logic,
         nextRevision: firstRevision,
         revisionLevel: 0
         });
@@ -112,11 +117,11 @@ app.delete("/delete-problem/:id", async (req, res) => {
 
 app.put("/update-problem/:id", async (req, res) => {
     try {
-        const { title, difficulty } = req.body;
+        const { title, difficulty, logic } = req.body;
 
         const updatedProblem = await Problem.findByIdAndUpdate(
             req.params.id,
-            { title, difficulty },
+            { title, difficulty, logic },
             { new: true, runValidators: true }
         );
 

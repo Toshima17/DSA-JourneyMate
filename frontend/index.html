@@ -19,6 +19,8 @@
             <option value="Hard">Hard</option>
         </select>
         <input type="text" id="link" placeholder="Enter problem link">
+        <textarea id="logic" placeholder="Write your logic / intuition..." rows="3"></textarea>
+
         <button onclick="addProblem()">Add Problem</button>
 
         <h3>Filter Problems</h3>
@@ -61,12 +63,13 @@
 
         <h3>Revision Problems</h3>
         <ul id="revisionList"></ul>
-
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script>
         function addProblem() {
             const title = document.getElementById("title").value;
             const difficulty = document.getElementById("difficulty").value;
             const link = document.getElementById("link").value;
+            const logic = document.getElementById("logic").value;
 
             if (!title.trim() || !difficulty.trim() || !link.trim()) {
                 alert("Please enter title, difficulty and problem link!");
@@ -78,7 +81,7 @@
                 headers: {
                     "Content-Type": "application/json"
                 },
-                body: JSON.stringify({ title, difficulty, link })
+                body: JSON.stringify({ title, difficulty, link, logic })
             })
             .then(res => res.json())
             .then(data => {
@@ -89,6 +92,7 @@
                 document.getElementById("title").value = "";
                 document.getElementById("difficulty").value = "";
                 document.getElementById("link").value = "";
+                document.getElementById("logic").value = "";
                 
                 alert("Problem Added Successfully!");
                 loadProblems();
@@ -115,7 +119,8 @@
                     card.innerHTML = `
                     <div class="problem-info">
                     <strong>${problem.title}</strong><br>
-                    Difficulty: ${problem.difficulty} | Status: ${problem.status}
+                    Difficulty: ${problem.difficulty} | Status: ${problem.status}<br>
+                    <p><b>Logic:</b> ${problem.logic ? problem.logic : "No logic added yet"}</p>
                     </div>
 
                     <div class="problem-actions">
@@ -165,13 +170,13 @@
 
         }
 
-        function updateProblem(id, title, difficulty) {
+        function updateProblem(id, title, difficulty, logic) {
             fetch(`https://dsa-journeymate-api.onrender.com/update-problem/${id}`, {
                 method: "PUT",
                 headers: {
                     "Content-Type": "application/json"
                 },
-                body: JSON.stringify({ title, difficulty })
+                body: JSON.stringify({ title, difficulty, logic })
             })
             .then(res => res.json())
             .then(data => {
@@ -274,9 +279,9 @@
             const text = card.textContent.toLowerCase();
 
             if(text.includes(input)){
-            card.style.display = "flex";
+                card.style.display = "flex";
             }else{
-            card.style.display = "none";
+                card.style.display = "none";
             }
 
             });
@@ -289,9 +294,10 @@
             const problem = data.find(p => p._id === id);
             const newTitle = prompt("Enter new title:", problem.title);
             const newDifficulty = prompt("Enter new difficulty (Easy/Medium/Hard):", problem.difficulty);
+            const newLogic = prompt("Enter logic / intuition:", problem.logic);
 
             if(newTitle && newDifficulty){
-            updateProblem(id, newTitle, newDifficulty);
+                updateProblem(id, newTitle, newDifficulty, newLogic);
             }
             
             });
@@ -364,6 +370,6 @@
 
     </script>
     </div>
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    
 </body>
 </html>
