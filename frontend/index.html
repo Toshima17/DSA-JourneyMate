@@ -19,6 +19,7 @@
             <option value="Hard">Hard</option>
         </select>
         <input type="text" id="link" placeholder="Enter problem link">
+        <input type="text" id="tags" placeholder="Enter tags (e.g. array, hashmap, dp)">
         <textarea id="logic" placeholder="Write your logic / intuition..." rows="3"></textarea>
 
         <button onclick="addProblem()">Add Problem</button>
@@ -33,6 +34,7 @@
         <input type="text" id="searchInput" placeholder="Search problem title..." onkeyup="searchProblems()">
 
         <h3>Problem List</h3>
+        <p id="loadingMsg">🚀 Loading... please wait</p>
         <div id="problemList"></div>
 
         <h3>Progress Dashboard</h3>
@@ -70,6 +72,10 @@
             const difficulty = document.getElementById("difficulty").value;
             const link = document.getElementById("link").value;
             const logic = document.getElementById("logic").value;
+            const tags = document.getElementById("tags").value
+                .split(",")
+                .map(tag => tag.trim().toLowerCase())
+                .filter(tag => tag);
 
             if (!title.trim() || !difficulty.trim() || !link.trim()) {
                 alert("Please enter title, difficulty and problem link!");
@@ -81,7 +87,7 @@
                 headers: {
                     "Content-Type": "application/json"
                 },
-                body: JSON.stringify({ title, difficulty, link, logic })
+                body: JSON.stringify({ title, difficulty, link, logic, tags })
             })
             .then(res => res.json())
             .then(data => {
@@ -101,6 +107,7 @@
             .catch(err => console.error(err));
         }
         function loadProblems(difficulty = "") {
+            document.getElementById("loadingMsg").style.display = "block";
             let url = "https://dsa-journeymate-api.onrender.com/problems";
             if (difficulty) {
                 url += "?difficulty=" + difficulty;
@@ -108,6 +115,7 @@
             fetch(url)
                 .then(res => res.json())
             .then(data => {
+                    document.getElementById("loadingMsg").style.display = "none";
                     //PROBLEM LIST
                     const list = document.getElementById("problemList");
                     list.innerHTML = "";
@@ -127,7 +135,11 @@
                                     </span>
                                     | Status: ${problem.status}
                                 </div>
-
+                                <div class="tags">
+                                    ${problem.tags && problem.tags.length 
+                                        ? problem.tags.map(tag => `<span class="tag">${tag}</span>`).join("")
+                                        : ""}
+                                </div>
                                 <div class="logic-hint">
                                     👇 Click to view logic <span id="arrow-${problem._id}">▼</span>
                                 </div>
@@ -156,6 +168,7 @@
                     list.appendChild(card);
                 });
             });
+            
         }
 
         function deleteProblem(id) {
@@ -182,13 +195,13 @@
 
         }
 
-        function updateProblem(id, title, difficulty, logic) {
+        function updateProblem(id, title, difficulty, logic, tags) {
             fetch(`https://dsa-journeymate-api.onrender.com/update-problem/${id}`, {
                 method: "PUT",
                 headers: {
                     "Content-Type": "application/json"
                 },
-                body: JSON.stringify({ title, difficulty, logic })
+                body: JSON.stringify({ title, difficulty, logic, tags})
             })
             .then(res => res.json())
             .then(data => {
@@ -307,9 +320,16 @@
             const newTitle = prompt("Enter new title:", problem.title);
             const newDifficulty = prompt("Enter new difficulty (Easy/Medium/Hard):", problem.difficulty);
             const newLogic = prompt("Enter logic / intuition:", problem.logic);
+            const newTags = prompt(
+                "Enter tags (comma separated):", 
+                problem.tags ? problem.tags.join(", ") : ""
+            );
+            const tagsArray = newTags
+                ? newTags.split(",").map(tag => tag.trim().toLowerCase())
+                : [];
 
             if(newTitle && newDifficulty){
-                updateProblem(id, newTitle, newDifficulty, newLogic);
+                updateProblem(id, newTitle, newDifficulty, newLogic, tagsArray);
             }
             
             });
