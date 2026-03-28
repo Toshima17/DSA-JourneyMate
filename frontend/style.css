@@ -48,6 +48,14 @@ input, select{
     font-size: 12px;
 }
 
+.tag:hover {
+    background: #4f46e5;
+    color: white;
+    transform: scale(1.05);
+    transition: 0.2s;
+    cursor: pointer;
+}
+
 button{
     padding: 8px 12px;
     border-radius: 6px;
@@ -102,6 +110,7 @@ button:hover{
     align-items: flex-start;
     border-bottom: 1px solid #eee;  
     padding-bottom: 8px;
+    cursor: pointer;
 }
 
 .card-top:hover {
@@ -202,10 +211,12 @@ button:hover{
 
 .filter-btn{
     padding:8px 12px;
+    margin: 4px;
     border:none;
     border-radius:6px;
     background:#d3d2d2;
     cursor:pointer;
+    font-size: 14px;
     transition: all 0.25s ease;
 }
 
@@ -231,7 +242,13 @@ button:hover{
 #loadingMsg {
     text-align: center;
     color: gray;
-    margin: 10px 0;
+    font-size:16px;
+    margin: 15px 0;
+}
+
+.tag.active {
+    background: #4f46e5;
+    color: white;
 }
 
 @media (max-width: 600px) {

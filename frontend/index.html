@@ -25,10 +25,15 @@
         <button onclick="addProblem()">Add Problem</button>
 
         <h3>Filter Problems</h3>
-        <button class="filter-btn active" onclick="setFilter('')">All</button>
-        <button class="filter-btn" onclick="setFilter('Easy')">Easy</button>
-        <button class="filter-btn" onclick="setFilter('Medium')">Medium</button>
-        <button class="filter-btn" onclick="setFilter('Hard')">Hard</button>
+        <div class="filter-group">
+            <button class="filter-btn" onclick="clearTagFilter(this)">Clear Tag Filter</button>
+            <button class="filter-btn active" onclick="setFilter('')">All</button>
+            <button class="filter-btn" onclick="setFilter('Easy')">Easy</button>
+            <button class="filter-btn" onclick="setFilter('Medium')">Medium</button>
+            <button class="filter-btn" onclick="setFilter('Hard')">Hard</button>
+            </div>
+
+        <h4 id="activeFilter"></h4>
 
         <h3>Search Problem</h3>
         <input type="text" id="searchInput" placeholder="Search problem title..." onkeyup="searchProblems()">
@@ -67,6 +72,7 @@
         <ul id="revisionList"></ul>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script>
+        let selectedTag = "";
         function addProblem() {
             const title = document.getElementById("title").value;
             const difficulty = document.getElementById("difficulty").value;
@@ -114,59 +120,70 @@
             }
             fetch(url)
                 .then(res => res.json())
-            .then(data => {
+            .   then(data => {
                     document.getElementById("loadingMsg").style.display = "none";
                     //PROBLEM LIST
                     const list = document.getElementById("problemList");
                     list.innerHTML = "";
+                    if (data.length === 0) {
+                        list.innerHTML = "<p>No problems found 😕</p>";
+                        return;
+                    }
 
-                data.forEach(problem => {
-                    const card = document.createElement("div");
-                    card.classList.add("card","fade-in");
+                data
+                    .filter(problem => {
+                        if (!selectedTag) return true;
+                        return problem.tags && problem.tags.includes(selectedTag);
+                    })
+                    .forEach(problem => {
+                        const card = document.createElement("div");
+                        card.classList.add("card","fade-in");
 
-                    card.innerHTML = `
-                        <div class="card-top" onclick="toggleLogic('${problem._id}')" style="cursor:pointer;">
-                            <div class="top-left">
-                                <strong>${problem.title}</strong>
-                                <div class="problem-meta">
-                                    Difficulty: 
-                                    <span class="difficulty ${problem.difficulty.toLowerCase()}">
-                                        ${problem.difficulty}
-                                    </span>
-                                    | Status: ${problem.status}
+                        card.innerHTML = `
+                            <div class="card-top" onclick="toggleLogic('${problem._id}')" style="cursor:pointer;">
+                                <div class="top-left">
+                                    <strong>${problem.title}</strong>
+                                    <div class="problem-meta">
+                                        Difficulty: 
+                                        <span class="difficulty ${problem.difficulty.toLowerCase()}">
+                                            ${problem.difficulty}
+                                        </span>
+                                        | Status: ${problem.status}
+                                    </div>
+                                    <div class="tags">
+                                        ${problem.tags && problem.tags.length 
+                                            ? problem.tags.map(tag => 
+                                                `<span class="tag" onclick="filterByTag('${tag}')">${tag}</span>`
+                                            ).join("")
+                                            : ""}
+                                    </div>
+                                    <div class="logic-hint">
+                                        👇 Click to view logic <span id="arrow-${problem._id}">▼</span>
+                                    </div>
                                 </div>
-                                <div class="tags">
-                                    ${problem.tags && problem.tags.length 
-                                        ? problem.tags.map(tag => `<span class="tag">${tag}</span>`).join("")
-                                        : ""}
-                                </div>
-                                <div class="logic-hint">
-                                    👇 Click to view logic <span id="arrow-${problem._id}">▼</span>
+
+                                <div class="problem-actions">
+                                    <button class="open-btn" onclick="event.stopPropagation(); window.open('${problem.link}','_blank')">Open</button>
+                                    <button class="edit-btn" onclick="event.stopPropagation(); editProblem('${problem._id}')">✏️</button>
+                                    <button class="delete-btn" onclick="event.stopPropagation(); deleteProblem('${problem._id}')">✖</button>
+
+                                    <select class="status-select"
+                                    onchange="event.stopPropagation(); updateStatus('${problem._id}', this.value)">
+                                        <option ${problem.status==="Not Started"?"selected":""}>Not Started</option>
+                                        <option ${problem.status==="Attempted"?"selected":""}>Attempted</option>
+                                        <option ${problem.status==="Solved"?"selected":""}>Solved</option>
+                                    </select>
                                 </div>
                             </div>
 
-                            <div class="problem-actions">
-                                <button class="open-btn" onclick="event.stopPropagation(); window.open('${problem.link}','_blank')">Open</button>
-                                <button class="edit-btn" onclick="event.stopPropagation(); editProblem('${problem._id}')">✏️</button>
-                                <button class="delete-btn" onclick="event.stopPropagation(); deleteProblem('${problem._id}')">✖</button>
-
-                                <select class="status-select"
-                                onchange="event.stopPropagation(); updateStatus('${problem._id}', this.value)">
-                                    <option ${problem.status==="Not Started"?"selected":""}>Not Started</option>
-                                    <option ${problem.status==="Attempted"?"selected":""}>Attempted</option>
-                                    <option ${problem.status==="Solved"?"selected":""}>Solved</option>
-                                </select>
+                            <div id="logic-${problem._id}" class="logic-box">
+                                ${problem.logic 
+                                    ? `<b>Logic:</b> ${problem.logic}` 
+                                    : `<span style="color:gray;">⚠️ No logic added (click edit)</span>`}
                             </div>
-                        </div>
-
-                        <div id="logic-${problem._id}" class="logic-box">
-                            ${problem.logic 
-                                ? `<b>Logic:</b> ${problem.logic}` 
-                                : `<span style="color:gray;">⚠️ No logic added (click edit)</span>`}
-                        </div>
-                    `;
-                    list.appendChild(card);
-                });
+                        `;
+                        list.appendChild(card);
+                    });
             });
             
         }
@@ -272,9 +289,7 @@
                     li.innerHTML = `
                     <strong style="color:red">${problem.title}</strong>
                     (${problem.difficulty})
-                    <button onclick="window.open('${problem.link}','_blank')">
-                    Review
-                    </button>
+                    <button onclick="reviewProblem('${problem._id}', '${problem.link}')">Review</button>
                     `;
                     list.appendChild(li);
                 });
@@ -406,6 +421,37 @@
                 box.style.display = "none";
                 arrow.textContent = "▼";
             }
+        }
+
+        function filterByTag(tag) {
+            selectedTag = tag;
+            document.getElementById("activeFilter").textContent = "Filtering by: " + tag;
+            loadProblems();
+        }
+
+        function clearTagFilter(btn) {
+            selectedTag = "";
+            selectedDifficulty = "";
+            document.getElementById("activeFilter").textContent = "";
+            document.querySelectorAll(".filter-btn").forEach(b => b.classList.remove("active"));
+            btn.classList.add("active");
+            
+            loadProblems();
+        }
+
+        function reviewProblem(id, link) {
+            // open problem
+            window.open(link, "_blank");
+
+            // update revision
+            fetch(`https://dsa-journeymate-api.onrender.com/review/${id}`, {
+                method: "PUT"
+            })
+            .then(res => res.json())
+            .then(() => {
+                loadProblems();
+                loadRevisionProblems();
+            });
         }
 
         loadProblems();

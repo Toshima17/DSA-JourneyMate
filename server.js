@@ -272,6 +272,32 @@ app.get("/progress-data", async (req, res) => {
     }
 });
 
+app.put("/review/:id", async (req, res) => {
+    try {
+        const problem = await Problem.findById(req.params.id);
+
+        const intervals = [1, 3, 7, 14, 30];
+
+        let currentStage = problem.revisionStage || 0;
+
+        if (currentStage < intervals.length - 1) {
+            currentStage++;
+        }
+
+        const nextDate = new Date();
+        nextDate.setDate(nextDate.getDate() + intervals[currentStage]);
+
+        problem.revisionStage = currentStage;
+        problem.nextRevision = nextDate;
+
+        await problem.save();
+
+        res.json(problem);
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
+});
+
 //listen
 app.listen(3000, () => {
     console.log("Server running on port 3000");
