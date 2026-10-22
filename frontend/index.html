@@ -172,13 +172,14 @@
 
     <script>
         // Resolve backend API URL
-        // If loaded from express server, use relative path ""
+        // If loaded from localhost or render backend, use relative path ""
         // If loaded from file:///, default to localhost:3000
+        // If loaded from Vercel or external domain, connect to the Render API
         const API_BASE = (window.location.protocol === "file:")
             ? "http://localhost:3000"
-            : (window.location.hostname === "localhost" || window.location.hostname === "127.0.0.1")
+            : (window.location.hostname === "localhost" || window.location.hostname === "127.0.0.1" || window.location.hostname.includes("onrender.com"))
                 ? ""
-                : "";
+                : "https://dsa-journeymate-api.onrender.com";
 
         let currentDifficulty = "";
         let currentTag = "";
