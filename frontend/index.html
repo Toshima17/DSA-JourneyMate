@@ -1,467 +1,632 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-    <title>Test Add Problem</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DSA JourneyMate - Spaced Repetition Tracker</title>
     <link rel="stylesheet" href="style.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
 <body>
     <div class="container">
-        <div class="streak-box">
-        🔥 Streak: <span id="currentStreak">0</span> days
+        <!-- Header -->
+        <header class="header">
+            <div class="header-title">
+                <h1>🚀 DSA JourneyMate</h1>
+                <p>Master Data Structures & Algorithms with Spaced Repetition</p>
+            </div>
+            <div class="streak-badge" id="streakBadge">
+                🔥 Streak: <span id="currentStreak">0</span> days
+            </div>
+        </header>
+
+        <!-- Backend Connection Alert Banner -->
+        <div id="serverAlert" class="server-banner">
+            ⚠️ <strong>Backend Unreachable:</strong> Could not connect to the API server. If running locally, make sure you ran <code>npm start</code> in your terminal.
         </div>
 
-        <h2>Add Problem</h2>
-        <input type="text" id="title" placeholder="Title">
-        <select id="difficulty">
-            <option value="">Select Difficulty</option>
-            <option value="Easy">Easy</option>
-            <option value="Medium">Medium</option>
-            <option value="Hard">Hard</option>
-        </select>
-        <input type="text" id="link" placeholder="Enter problem link">
-        <input type="text" id="tags" placeholder="Enter tags (e.g. array, hashmap, dp)">
-        <textarea id="logic" placeholder="Write your logic / intuition..." rows="3"></textarea>
+        <!-- Add Problem Form -->
+        <section class="section-card">
+            <h2 class="section-title">➕ Add New Problem</h2>
+            <form id="addProblemForm" onsubmit="handleAddProblem(event)">
+                <div class="form-grid">
+                    <input type="text" id="title" placeholder="Problem Title (e.g. Two Sum)" required>
+                    <select id="difficulty" required>
+                        <option value="">Difficulty</option>
+                        <option value="Easy">Easy</option>
+                        <option value="Medium">Medium</option>
+                        <option value="Hard">Hard</option>
+                    </select>
+                    <input type="url" id="link" placeholder="Problem Link (e.g. https://leetcode.com/...)" required>
+                </div>
+                <div class="form-row">
+                    <div style="display: grid; grid-template-columns: 2fr 1fr; gap: 12px;">
+                        <input type="text" id="tags" placeholder="Tags (comma separated, e.g. Array, Hashmap, Two Pointers)">
+                        <select id="initialStatus">
+                            <option value="Not Started">Status: Not Started</option>
+                            <option value="Attempted">Status: Attempted</option>
+                            <option value="Solved">Status: Solved</option>
+                        </select>
+                    </div>
+                    <textarea id="logic" placeholder="Key logic, intuition, time/space complexity notes..."></textarea>
+                    <button type="submit" class="btn-primary" style="align-self: flex-start;">
+                        Save Problem
+                    </button>
+                </div>
+            </form>
+        </section>
 
-        <button onclick="addProblem()">Add Problem</button>
-
-        <h3>Filter Problems</h3>
-        <div class="filter-group">
-            <button class="filter-btn" onclick="clearTagFilter(this)">Clear Tag Filter</button>
-            <button class="filter-btn active" onclick="setFilter('')">All</button>
-            <button class="filter-btn" onclick="setFilter('Easy')">Easy</button>
-            <button class="filter-btn" onclick="setFilter('Medium')">Medium</button>
-            <button class="filter-btn" onclick="setFilter('Hard')">Hard</button>
-            </div>
-
-        <h4 id="activeFilter"></h4>
-
-        <h3>Search Problem</h3>
-        <input type="text" id="searchInput" placeholder="Search problem title..." onkeyup="searchProblems()">
-
-        <h3>Problem List</h3>
-        <p id="loadingMsg">🚀 Loading... please wait</p>
-        <div id="problemList"></div>
-
-        <h3>Progress Dashboard</h3>
-        <div class="dashboard">
+        <!-- Progress Dashboard Stats -->
+        <div class="dashboard-grid">
             <div class="stat-card">
-                Total Problems
-            <div id="totalCount"></div>
+                <div class="stat-label">Total Problems</div>
+                <div class="stat-value" id="totalCount">0</div>
             </div>
-
-            <div class="stat-card">
-                Solved
-            <div id="solvedCount"></div>
+            <div class="stat-card solved-card">
+                <div class="stat-label">Solved</div>
+                <div class="stat-value" id="solvedCount" style="color: var(--success);">0</div>
             </div>
-
-            <div class="stat-card">
-                Attempted
-            <div id="attemptedCount"></div>
+            <div class="stat-card attempted-card">
+                <div class="stat-label">Attempted</div>
+                <div class="stat-value" id="attemptedCount" style="color: var(--warning);">0</div>
             </div>
-
-            <div class="stat-card">
-                Not Started
-            <div id="notStartedCount"></div>
+            <div class="stat-card notstarted-card">
+                <div class="stat-label">Not Started</div>
+                <div class="stat-value" id="notStartedCount" style="color: var(--text-secondary);">0</div>
             </div>
         </div>
 
-        <h3>DSA Progress Graph</h3>
-        <canvas id="progressChart" width="400" height="200"></canvas>
+        <!-- Spaced Repetition Due Today -->
+        <section class="section-card">
+            <h2 class="section-title">🧠 Spaced Repetition Due Today</h2>
+            <div id="revisionList">
+                <p class="state-message">Checking for revisions...</p>
+            </div>
+        </section>
 
-        <h3>Revision Problems</h3>
-        <ul id="revisionList"></ul>
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+        <!-- Problems Directory -->
+        <section class="section-card">
+            <div class="controls-bar">
+                <div class="filter-group">
+                    <button type="button" class="filter-btn active" data-difficulty="" onclick="filterDifficulty(this, '')">All</button>
+                    <button type="button" class="filter-btn" data-difficulty="Easy" onclick="filterDifficulty(this, 'Easy')">Easy</button>
+                    <button type="button" class="filter-btn" data-difficulty="Medium" onclick="filterDifficulty(this, 'Medium')">Medium</button>
+                    <button type="button" class="filter-btn" data-difficulty="Hard" onclick="filterDifficulty(this, 'Hard')">Hard</button>
+                    <button type="button" id="clearTagBtn" class="filter-btn" style="display:none;" onclick="clearTagFilter()">✖ Clear Tag</button>
+                </div>
+                <div class="search-box">
+                    <input type="text" id="searchInput" placeholder="🔍 Search problems by title or tag..." oninput="handleSearch()">
+                </div>
+            </div>
+            <div id="activeTagBadge" style="margin-bottom: 12px; font-size: 13px; color: var(--primary); font-weight: 600; display: none;"></div>
+
+            <div id="problemList">
+                <p class="state-message">Loading problems...</p>
+            </div>
+        </section>
+
+        <!-- Progress Chart -->
+        <section class="section-card">
+            <h2 class="section-title">📊 DSA Progress History</h2>
+            <div style="position: relative; height: 260px; width: 100%;">
+                <canvas id="progressChart"></canvas>
+            </div>
+        </section>
+    </div>
+
+    <!-- Edit Problem Modal -->
+    <div id="editModal" class="modal-overlay">
+        <div class="modal-card">
+            <div class="modal-header">
+                <h3 class="modal-title">✏️ Edit Problem</h3>
+                <button type="button" class="btn-secondary" style="padding: 4px 8px;" onclick="closeEditModal()">✕</button>
+            </div>
+            <form id="editProblemForm" onsubmit="handleSaveEdit(event)">
+                <input type="hidden" id="editId">
+                <div class="form-row">
+                    <div>
+                        <label style="font-size: 12px; font-weight: 600; color: var(--text-secondary);">Title</label>
+                        <input type="text" id="editTitle" required>
+                    </div>
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
+                        <div>
+                            <label style="font-size: 12px; font-weight: 600; color: var(--text-secondary);">Difficulty</label>
+                            <select id="editDifficulty" required>
+                                <option value="Easy">Easy</option>
+                                <option value="Medium">Medium</option>
+                                <option value="Hard">Hard</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label style="font-size: 12px; font-weight: 600; color: var(--text-secondary);">Status</label>
+                            <select id="editStatus">
+                                <option value="Not Started">Not Started</option>
+                                <option value="Attempted">Attempted</option>
+                                <option value="Solved">Solved</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div>
+                        <label style="font-size: 12px; font-weight: 600; color: var(--text-secondary);">Problem URL</label>
+                        <input type="url" id="editLink" required>
+                    </div>
+                    <div>
+                        <label style="font-size: 12px; font-weight: 600; color: var(--text-secondary);">Tags</label>
+                        <input type="text" id="editTags" placeholder="Comma separated tags">
+                    </div>
+                    <div>
+                        <label style="font-size: 12px; font-weight: 600; color: var(--text-secondary);">Logic / Notes</label>
+                        <textarea id="editLogic" rows="3"></textarea>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn-secondary" onclick="closeEditModal()">Cancel</button>
+                    <button type="submit" class="btn-primary">Save Changes</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Toast Notifications Container -->
+    <div id="toast-container"></div>
+
     <script>
-        let selectedTag = "";
-        function addProblem() {
-            const title = document.getElementById("title").value;
-            const difficulty = document.getElementById("difficulty").value;
-            const link = document.getElementById("link").value;
-            const logic = document.getElementById("logic").value;
-            const tags = document.getElementById("tags").value
-                .split(",")
-                .map(tag => tag.trim().toLowerCase())
-                .filter(tag => tag);
+        // Resolve backend API URL
+        // If loaded from express server, use relative path ""
+        // If loaded from file:///, default to localhost:3000
+        const API_BASE = (window.location.protocol === "file:")
+            ? "http://localhost:3000"
+            : (window.location.hostname === "localhost" || window.location.hostname === "127.0.0.1")
+                ? ""
+                : "";
 
-            if (!title.trim() || !difficulty.trim() || !link.trim()) {
-                alert("Please enter title, difficulty and problem link!");
+        let currentDifficulty = "";
+        let currentTag = "";
+        let searchQuery = "";
+        let chartInstance = null;
+        let allProblemsCache = [];
+
+        // Toast notification helper
+        function showToast(message, type = "info") {
+            const container = document.getElementById("toast-container");
+            const toast = document.createElement("div");
+            toast.className = `toast ${type}`;
+            toast.textContent = message;
+            container.appendChild(toast);
+            setTimeout(() => {
+                if (toast.parentNode) toast.parentNode.removeChild(toast);
+            }, 3000);
+        }
+
+        // Show/hide server connection alert
+        function setServerOnline(online) {
+            const banner = document.getElementById("serverAlert");
+            if (banner) {
+                banner.style.display = online ? "none" : "flex";
+            }
+        }
+
+        // Generic API fetcher with error handling
+        async function apiFetch(endpoint, options = {}) {
+            try {
+                const response = await fetch(`${API_BASE}${endpoint}`, {
+                    headers: { "Content-Type": "application/json", ...options.headers },
+                    ...options
+                });
+                if (!response.ok) {
+                    const errorData = await response.json().catch(() => ({}));
+                    throw new Error(errorData.error || `Request failed with status ${response.status}`);
+                }
+                setServerOnline(true);
+                return await response.json();
+            } catch (err) {
+                console.error("API error:", err);
+                setServerOnline(false);
+                throw err;
+            }
+        }
+
+        // Add problem
+        async function handleAddProblem(e) {
+            e.preventDefault();
+            const title = document.getElementById("title").value.trim();
+            const difficulty = document.getElementById("difficulty").value;
+            const link = document.getElementById("link").value.trim();
+            const tagsRaw = document.getElementById("tags").value;
+            const status = document.getElementById("initialStatus").value;
+            const logic = document.getElementById("logic").value.trim();
+
+            const tags = tagsRaw
+                .split(",")
+                .map(t => t.trim().toLowerCase())
+                .filter(Boolean);
+
+            try {
+                await apiFetch("/add-problem", {
+                    method: "POST",
+                    body: JSON.stringify({ title, difficulty, link, tags, status, logic })
+                });
+
+                showToast("Problem added successfully! 🎉", "success");
+                document.getElementById("addProblemForm").reset();
+
+                // Refresh app state
+                loadProblems();
+                loadStats();
+                loadStreak();
+                loadRevisionProblems();
+                loadProgressChart();
+            } catch (err) {
+                showToast(err.message, "error");
+            }
+        }
+
+        // Load problem list
+        async function loadProblems() {
+            try {
+                let url = "/problems";
+                const params = [];
+                if (currentDifficulty) params.push(`difficulty=${encodeURIComponent(currentDifficulty)}`);
+                if (currentTag) params.push(`tag=${encodeURIComponent(currentTag)}`);
+                if (params.length) url += `?${params.join("&")}`;
+
+                const problems = await apiFetch(url);
+                allProblemsCache = problems;
+                renderProblemList(problems);
+            } catch (err) {
+                document.getElementById("problemList").innerHTML =
+                    `<p class="state-message" style="color:var(--danger)">⚠️ Failed to load problems from server.</p>`;
+            }
+        }
+
+        // Render cards
+        function renderProblemList(problems) {
+            const list = document.getElementById("problemList");
+            list.innerHTML = "";
+
+            const filtered = problems.filter(p => {
+                if (!searchQuery) return true;
+                const matchTitle = p.title.toLowerCase().includes(searchQuery);
+                const matchTag = p.tags && p.tags.some(t => t.toLowerCase().includes(searchQuery));
+                return matchTitle || matchTag;
+            });
+
+            if (filtered.length === 0) {
+                list.innerHTML = `<p class="state-message">No problems found matching your filters. 🔍</p>`;
                 return;
             }
 
-            fetch("https://dsa-journeymate-api.onrender.com/add-problem", {
-                method: "POST",
-                headers: {
-                    "Content-Type": "application/json"
-                },
-                body: JSON.stringify({ title, difficulty, link, logic, tags })
-            })
-            .then(res => res.json())
-            .then(data => {
-                if (data.error) {
-                    alert(data.error);
-                    return;
-                }
-                document.getElementById("title").value = "";
-                document.getElementById("difficulty").value = "";
-                document.getElementById("link").value = "";
-                document.getElementById("logic").value = "";
-                
-                alert("Problem Added Successfully!");
-                loadProblems();
-                loadStats();
-            })
-            .catch(err => console.error(err));
-        }
-        function loadProblems(difficulty = "") {
-            document.getElementById("loadingMsg").style.display = "block";
-            let url = "https://dsa-journeymate-api.onrender.com/problems";
-            if (difficulty) {
-                url += "?difficulty=" + difficulty;
-            }
-            fetch(url)
-                .then(res => res.json())
-            .   then(data => {
-                    document.getElementById("loadingMsg").style.display = "none";
-                    //PROBLEM LIST
-                    const list = document.getElementById("problemList");
-                    list.innerHTML = "";
-                    if (data.length === 0) {
-                        list.innerHTML = "<p>No problems found 😕</p>";
-                        return;
-                    }
+            const intervals = [1, 3, 7, 14, 30];
 
-                data
-                    .filter(problem => {
-                        if (!selectedTag) return true;
-                        return problem.tags && problem.tags.includes(selectedTag);
-                    })
-                    .forEach(problem => {
-                        const card = document.createElement("div");
-                        card.classList.add("card","fade-in");
+            filtered.forEach(p => {
+                const card = document.createElement("div");
+                card.className = "problem-card";
 
-                        card.innerHTML = `
-                            <div class="card-top" onclick="toggleLogic('${problem._id}')" style="cursor:pointer;">
-                                <div class="top-left">
-                                    <strong>${problem.title}</strong>
-                                    <div class="problem-meta">
-                                        Difficulty: 
-                                        <span class="difficulty ${problem.difficulty.toLowerCase()}">
-                                            ${problem.difficulty}
-                                        </span>
-                                        | Status: ${problem.status}
-                                    </div>
-                                    <div class="tags">
-                                        ${problem.tags && problem.tags.length 
-                                            ? problem.tags.map(tag => 
-                                                `<span class="tag" onclick="filterByTag('${tag}')">${tag}</span>`
-                                            ).join("")
-                                            : ""}
-                                    </div>
-                                    <div class="logic-hint">
-                                        👇 Click to view logic <span id="arrow-${problem._id}">▼</span>
-                                    </div>
-                                </div>
+                const diffClass = (p.difficulty || "easy").toLowerCase();
+                const statusClass = (p.status || "Not Started").replace(" ", "-");
 
-                                <div class="problem-actions">
-                                    <button class="open-btn" onclick="event.stopPropagation(); window.open('${problem.link}','_blank')">Open</button>
-                                    <button class="edit-btn" onclick="event.stopPropagation(); editProblem('${problem._id}')">✏️</button>
-                                    <button class="delete-btn" onclick="event.stopPropagation(); deleteProblem('${problem._id}')">✖</button>
-
-                                    <select class="status-select"
-                                    onchange="event.stopPropagation(); updateStatus('${problem._id}', this.value)">
-                                        <option ${problem.status==="Not Started"?"selected":""}>Not Started</option>
-                                        <option ${problem.status==="Attempted"?"selected":""}>Attempted</option>
-                                        <option ${problem.status==="Solved"?"selected":""}>Solved</option>
-                                    </select>
-                                </div>
-                            </div>
-
-                            <div id="logic-${problem._id}" class="logic-box">
-                                ${problem.logic 
-                                    ? `<b>Logic:</b> ${problem.logic}` 
-                                    : `<span style="color:gray;">⚠️ No logic added (click edit)</span>`}
-                            </div>
-                        `;
-                        list.appendChild(card);
+                // Revision badge info
+                let revisionBadgeHtml = "";
+                if (p.status === "Solved" && p.nextRevision) {
+                    const revDate = new Date(p.nextRevision).toLocaleDateString(undefined, {
+                        month: "short", day: "numeric"
                     });
-            });
-            
-        }
-
-        function deleteProblem(id) {
-            const confirmDelete = confirm("Do you want to delete this problem?");
-
-            if(!confirmDelete){
-            return;
-            }
-
-            fetch(`https://dsa-journeymate-api.onrender.com/delete-problem/${id}`, {
-            method: "DELETE"
-            })
-            .then(res => res.json())
-            .then(data => {
-
-            alert("Problem deleted successfully!");
-
-            loadProblems();
-            loadStats();
-
-            })
-
-            .catch(err => console.error(err));
-
-        }
-
-        function updateProblem(id, title, difficulty, logic, tags) {
-            fetch(`https://dsa-journeymate-api.onrender.com/update-problem/${id}`, {
-                method: "PUT",
-                headers: {
-                    "Content-Type": "application/json"
-                },
-                body: JSON.stringify({ title, difficulty, logic, tags})
-            })
-            .then(res => res.json())
-            .then(data => {
-                if (data.error) {
-                    alert(data.error);
-                    return;
+                    const stageNum = (p.revisionLevel || 0) + 1;
+                    revisionBadgeHtml = `<span class="revision-badge">📅 Review: ${revDate} (Stage ${stageNum}/5)</span>`;
                 }
 
-                alert("Updated Successfully");
-                loadProblems();
-                loadStats();
-            })
-            .catch(err => console.error(err));
-        }
-        function updateStatus(id, status) {
+                // Tags HTML
+                const tagsHtml = (p.tags && p.tags.length)
+                    ? p.tags.map(tag => `<span class="tag-pill" onclick="filterByTag('${escapeHtml(tag)}')">#${escapeHtml(tag)}</span>`).join("")
+                    : "";
 
-            fetch(`https://dsa-journeymate-api.onrender.com/update-status/${id}`, {
-            method: "PATCH",
-            headers: {
-            "Content-Type": "application/json"
-            },
-            body: JSON.stringify({ status })
-            })
-            .then(res => res.json())
-            .then(data => {
+                card.innerHTML = `
+                    <div class="card-main">
+                        <div style="flex: 1;">
+                            <div class="problem-header">
+                                <a href="${escapeHtml(p.link)}" target="_blank" rel="noopener noreferrer" class="problem-title">
+                                    ${escapeHtml(p.title)} ↗
+                                </a>
+                                <span class="difficulty-badge ${diffClass}">${escapeHtml(p.difficulty)}</span>
+                                ${revisionBadgeHtml}
+                            </div>
+                            <div class="problem-meta">
+                                <span>Status: <strong>${escapeHtml(p.status)}</strong></span>
+                                <span>•</span>
+                                <span>Added: ${new Date(p.createdAt).toLocaleDateString()}</span>
+                            </div>
+                            ${tagsHtml ? `<div class="tags-list">${tagsHtml}</div>` : ""}
+                        </div>
 
-            alert("Status updated!");
-            loadProblems();
-            loadStats();
+                        <div class="card-actions">
+                            <select class="status-dropdown ${statusClass}" onchange="updateStatus('${p._id}', this.value)">
+                                <option value="Not Started" ${p.status === "Not Started" ? "selected" : ""}>Not Started</option>
+                                <option value="Attempted" ${p.status === "Attempted" ? "selected" : ""}>Attempted</option>
+                                <option value="Solved" ${p.status === "Solved" ? "selected" : ""}>Solved</option>
+                            </select>
+                            <button class="action-btn" title="Edit Problem" onclick="openEditModal('${p._id}')">✏️</button>
+                            <button class="action-btn delete-btn" title="Delete Problem" onclick="deleteProblem('${p._id}', '${escapeHtml(p.title)}')">🗑️</button>
+                        </div>
+                    </div>
 
-            })
-            .catch(err => console.error(err));
+                    <div class="logic-toggle" onclick="toggleLogic('${p._id}')">
+                        <span id="logic-arrow-${p._id}">▶</span> Notes / Logic
+                    </div>
+                    <div id="logic-content-${p._id}" class="logic-content">${p.logic ? escapeHtml(p.logic) : '<span style="color:var(--text-secondary); font-style:italic;">No notes recorded for this problem.</span>'}</div>
+                `;
 
-        }
-
-        function updateAttempt(id) {
-
-            fetch(`https://dsa-journeymate-api.onrender.com/update-attempt/${id}`, {
-            method: "PATCH"
-            })
-            .then(res => res.json())
-            .then(data => {
-
-            alert("Marked as attempted!");
-            loadProblems();
-
-            })
-            .catch(err => console.error(err));
-
-        }
-
-        function loadRevisionProblems(){
-
-            fetch("https://dsa-journeymate-api.onrender.com/revision-problems")
-            .then(res => res.json())
-            .then(data => {
-
-                const list = document.getElementById("revisionList");
-                list.innerHTML = "";
-                if(data.length === 0){
-                    list.innerHTML = "<li>No revisions today 🎉</li>";
-                    return;
-                }
-
-                data.forEach(problem => {
-
-                    const li = document.createElement("li");
-                    li.innerHTML = `
-                    <strong style="color:red">${problem.title}</strong>
-                    (${problem.difficulty})
-                    <button onclick="reviewProblem('${problem._id}', '${problem.link}')">Review</button>
-                    `;
-                    list.appendChild(li);
-                });
-            }).catch(err => console.error(err));
-        }
-
-        function loadStats(){
-
-            fetch("https://dsa-journeymate-api.onrender.com/stats")
-            .then(res => res.json())
-            .then(data => {
-
-            document.getElementById("totalCount").textContent = data.total;
-            document.getElementById("solvedCount").textContent = data.solved;
-            document.getElementById("attemptedCount").textContent = data.attempted;
-            document.getElementById("notStartedCount").textContent = data.notStarted;
-
-            })
-            .catch(err => console.error(err));
-
-        }
-
-        function searchProblems(){
-            const input = document.getElementById("searchInput").value.toLowerCase();
-            const cards = document.querySelectorAll(".card");
-            cards.forEach(card => {
-            const text = card.textContent.toLowerCase();
-
-            if(text.includes(input)){
-                card.style.display = "flex";
-            }else{
-                card.style.display = "none";
-            }
-
+                list.appendChild(card);
             });
         }
 
-        function editProblem(id){
-            fetch(`https://dsa-journeymate-api.onrender.com/problems`)
-            .then(res => res.json())
-            .then(data => {
-            const problem = data.find(p => p._id === id);
-            const newTitle = prompt("Enter new title:", problem.title);
-            const newDifficulty = prompt("Enter new difficulty (Easy/Medium/Hard):", problem.difficulty);
-            const newLogic = prompt("Enter logic / intuition:", problem.logic);
-            const newTags = prompt(
-                "Enter tags (comma separated):", 
-                problem.tags ? problem.tags.join(", ") : ""
-            );
-            const tagsArray = newTags
-                ? newTags.split(",").map(tag => tag.trim().toLowerCase())
-                : [];
-
-            if(newTitle && newDifficulty){
-                updateProblem(id, newTitle, newDifficulty, newLogic, tagsArray);
-            }
-            
-            });
-
-        }
-
-        function loadStreak(){
-            fetch("https://dsa-journeymate-api.onrender.com/streak")
-            .then(res => res.json())
-            .then(data => {
-
-            document.getElementById("currentStreak").textContent = data.streak ;
-            })
-            .catch(err => console.error(err));
-
-        }
-
-        function loadProgressChart() {
-
-            fetch("https://dsa-journeymate-api.onrender.com/progress-data")
-            .then(res => res.json())
-            .then(data => {
-
-                const labels = Object.keys(data);
-                const values = Object.values(data);
-                const ctx = document.getElementById("progressChart").getContext("2d");
-
-                new Chart(ctx, {
-                    type: "bar",
-                    data: {
-                        labels: labels,
-                        datasets: [{
-                            label: "Problems Solved",
-                            data: values,
-                            borderColor: "blue",
-                            backgroundColor: "lightblue",
-                            tension: 0.3
-                        }]
-                    },
-                    options: {
-                        responsive: true,
-                        scales:{
-                            y:{
-                                beginAtZero: true,
-                                ticks:{
-                                    stepSize: 1
-                                }
-                            }
-                        }
-                    }
-                });
-
-            });
-        }
-
-        function setFilter(difficulty){
-            loadProblems(difficulty);
-            const buttons = document.querySelectorAll(".filter-btn");
-            buttons.forEach(btn=>{
-                btn.classList.remove("active");
-            });
-            event.target.classList.add("active");
-        }
-
+        // Toggle logic view
         function toggleLogic(id) {
-            console.log("clicked:", id); 
-            const box = document.getElementById(`logic-${id}`);
-            const arrow = document.getElementById(`arrow-${id}`); 
-
-            if (box.style.display === "none" || box.style.display === "") {
-                box.style.display = "block";
-                arrow.textContent = "▲";
+            const content = document.getElementById(`logic-content-${id}`);
+            const arrow = document.getElementById(`logic-arrow-${id}`);
+            if (content.style.display === "block") {
+                content.style.display = "none";
+                arrow.textContent = "▶";
             } else {
-                box.style.display = "none";
+                content.style.display = "block";
                 arrow.textContent = "▼";
             }
         }
 
-        function filterByTag(tag) {
-            selectedTag = tag;
-            document.getElementById("activeFilter").textContent = "Filtering by: " + tag;
-            loadProblems();
-        }
-
-        function clearTagFilter(btn) {
-            selectedTag = "";
-            selectedDifficulty = "";
-            document.getElementById("activeFilter").textContent = "";
-            document.querySelectorAll(".filter-btn").forEach(b => b.classList.remove("active"));
-            btn.classList.add("active");
-            
-            loadProblems();
-        }
-
-        function reviewProblem(id, link) {
-            // open problem
-            window.open(link, "_blank");
-
-            // update revision
-            fetch(`https://dsa-journeymate-api.onrender.com/review/${id}`, {
-                method: "PUT"
-            })
-            .then(res => res.json())
-            .then(() => {
+        // Update status directly from card dropdown
+        async function updateStatus(id, newStatus) {
+            try {
+                await apiFetch(`/update-status/${id}`, {
+                    method: "PATCH",
+                    body: JSON.stringify({ status: newStatus })
+                });
+                showToast(`Status updated to "${newStatus}"`, "success");
                 loadProblems();
+                loadStats();
+                loadStreak();
                 loadRevisionProblems();
-            });
+                loadProgressChart();
+            } catch (err) {
+                showToast("Failed to update status", "error");
+            }
         }
 
-        loadProblems();
-        loadRevisionProblems();
-        loadStats();
-        loadStreak();
-        loadProgressChart();
+        // Delete problem
+        async function deleteProblem(id, title) {
+            if (!confirm(`Are you sure you want to delete "${title}"?`)) return;
 
+            try {
+                await apiFetch(`/delete-problem/${id}`, { method: "DELETE" });
+                showToast("Problem deleted", "info");
+                loadProblems();
+                loadStats();
+                loadStreak();
+                loadRevisionProblems();
+                loadProgressChart();
+            } catch (err) {
+                showToast("Failed to delete problem", "error");
+            }
+        }
+
+        // Load stats
+        async function loadStats() {
+            try {
+                const stats = await apiFetch("/stats");
+                document.getElementById("totalCount").textContent = stats.total || 0;
+                document.getElementById("solvedCount").textContent = stats.solved || 0;
+                document.getElementById("attemptedCount").textContent = stats.attempted || 0;
+                document.getElementById("notStartedCount").textContent = stats.notStarted || 0;
+            } catch (err) {
+                console.warn("Could not load stats");
+            }
+        }
+
+        // Load daily streak
+        async function loadStreak() {
+            try {
+                const data = await apiFetch("/streak");
+                document.getElementById("currentStreak").textContent = data.streak || 0;
+            } catch (err) {
+                console.warn("Could not load streak");
+            }
+        }
+
+        // Load problems due for revision
+        async function loadRevisionProblems() {
+            const container = document.getElementById("revisionList");
+            try {
+                const problems = await apiFetch("/revision-problems");
+                if (problems.length === 0) {
+                    container.innerHTML = `<p class="state-message">No revisions due today 🎉 Keep solving new problems!</p>`;
+                    return;
+                }
+
+                container.innerHTML = "";
+                problems.forEach(p => {
+                    const item = document.createElement("div");
+                    item.className = "revision-item";
+                    item.innerHTML = `
+                        <div class="revision-info">
+                            <strong>${escapeHtml(p.title)}</strong>
+                            <span class="difficulty-badge ${(p.difficulty || 'easy').toLowerCase()}">${escapeHtml(p.difficulty)}</span>
+                            <span style="font-size: 12px; color: var(--text-secondary); margin-left: 8px;">Stage ${(p.revisionLevel || 0) + 1} of 5</span>
+                        </div>
+                        <div style="display: flex; gap: 8px;">
+                            <button class="btn-primary" style="padding: 6px 12px; font-size: 13px;" onclick="reviewProblem('${p._id}', '${escapeHtml(p.link)}')">
+                                Review & Open ↗
+                            </button>
+                        </div>
+                    `;
+                    container.appendChild(item);
+                });
+            } catch (err) {
+                container.innerHTML = `<p class="state-message" style="color:var(--text-secondary)">Could not load revision problems.</p>`;
+            }
+        }
+
+        // Review problem handler
+        async function reviewProblem(id, link) {
+            window.open(link, "_blank");
+            try {
+                await apiFetch(`/review/${id}`, { method: "PUT" });
+                showToast("Revision recorded! Spaced interval updated 🚀", "success");
+                loadRevisionProblems();
+                loadProblems();
+            } catch (err) {
+                showToast("Failed to record review", "error");
+            }
+        }
+
+        // Load Progress Chart
+        async function loadProgressChart() {
+            try {
+                const data = await apiFetch("/progress-data");
+                const labels = Object.keys(data);
+                const values = Object.values(data);
+
+                const ctx = document.getElementById("progressChart").getContext("2d");
+
+                if (chartInstance) {
+                    chartInstance.destroy();
+                }
+
+                chartInstance = new Chart(ctx, {
+                    type: "bar",
+                    data: {
+                        labels: labels.length ? labels : ["No data yet"],
+                        datasets: [{
+                            label: "Problems Solved",
+                            data: values.length ? values : [0],
+                            backgroundColor: "rgba(79, 70, 229, 0.65)",
+                            borderColor: "rgb(79, 70, 229)",
+                            borderWidth: 1.5,
+                            borderRadius: 6
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        scales: {
+                            y: {
+                                beginAtZero: true,
+                                ticks: { stepSize: 1, precision: 0 }
+                            }
+                        },
+                        plugins: {
+                            legend: { display: false }
+                        }
+                    }
+                });
+            } catch (err) {
+                console.warn("Could not load chart");
+            }
+        }
+
+        // Difficulty filtering
+        function filterDifficulty(button, difficulty) {
+            currentDifficulty = difficulty;
+            document.querySelectorAll(".filter-btn[data-difficulty]").forEach(btn => btn.classList.remove("active"));
+            button.classList.add("active");
+            loadProblems();
+        }
+
+        // Tag filtering
+        function filterByTag(tag) {
+            currentTag = tag;
+            const badge = document.getElementById("activeTagBadge");
+            const clearBtn = document.getElementById("clearTagBtn");
+            badge.textContent = `Filtering by tag: #${tag}`;
+            badge.style.display = "block";
+            clearBtn.style.display = "inline-flex";
+            loadProblems();
+        }
+
+        function clearTagFilter() {
+            currentTag = "";
+            const badge = document.getElementById("activeTagBadge");
+            const clearBtn = document.getElementById("clearTagBtn");
+            badge.style.display = "none";
+            clearBtn.style.display = "none";
+            loadProblems();
+        }
+
+        // Real-time search
+        function handleSearch() {
+            searchQuery = document.getElementById("searchInput").value.trim().toLowerCase();
+            renderProblemList(allProblemsCache);
+        }
+
+        // Edit Modal functions
+        async function openEditModal(id) {
+            try {
+                const problem = await apiFetch(`/problems/${id}`);
+                document.getElementById("editId").value = problem._id;
+                document.getElementById("editTitle").value = problem.title;
+                document.getElementById("editDifficulty").value = problem.difficulty;
+                document.getElementById("editStatus").value = problem.status;
+                document.getElementById("editLink").value = problem.link;
+                document.getElementById("editTags").value = (problem.tags || []).join(", ");
+                document.getElementById("editLogic").value = problem.logic || "";
+
+                document.getElementById("editModal").style.display = "flex";
+            } catch (err) {
+                showToast("Could not fetch problem details", "error");
+            }
+        }
+
+        function closeEditModal() {
+            document.getElementById("editModal").style.display = "none";
+        }
+
+        async function handleSaveEdit(e) {
+            e.preventDefault();
+            const id = document.getElementById("editId").value;
+            const title = document.getElementById("editTitle").value.trim();
+            const difficulty = document.getElementById("editDifficulty").value;
+            const status = document.getElementById("editStatus").value;
+            const link = document.getElementById("editLink").value.trim();
+            const tags = document.getElementById("editTags").value
+                .split(",")
+                .map(t => t.trim().toLowerCase())
+                .filter(Boolean);
+            const logic = document.getElementById("editLogic").value.trim();
+
+            try {
+                await apiFetch(`/update-problem/${id}`, {
+                    method: "PUT",
+                    body: JSON.stringify({ title, difficulty, status, link, tags, logic })
+                });
+
+                showToast("Problem updated successfully! ✨", "success");
+                closeEditModal();
+                loadProblems();
+                loadStats();
+                loadStreak();
+                loadRevisionProblems();
+                loadProgressChart();
+            } catch (err) {
+                showToast(err.message, "error");
+            }
+        }
+
+        // Helper to escape HTML characters in dynamic text
+        function escapeHtml(str) {
+            if (!str) return "";
+            return String(str)
+                .replace(/&/g, "&amp;")
+                .replace(/</g, "&lt;")
+                .replace(/>/g, "&gt;")
+                .replace(/"/g, "&quot;")
+                .replace(/'/g, "&#039;");
+        }
+
+        // Initialize application
+        window.addEventListener("DOMContentLoaded", () => {
+            loadProblems();
+            loadStats();
+            loadStreak();
+            loadRevisionProblems();
+            loadProgressChart();
+        });
     </script>
-    </div>
-    
 </body>
 </html>
